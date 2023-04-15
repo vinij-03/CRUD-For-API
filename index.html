@@ -1,160 +1,178 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title> API-CRUD </title>
-    <style>
-      form {
-        display: flex;
-        flex-direction: column;
-        margin-bottom: 10px;
-      }
 
-      input[type="text"],
-      textarea {
-        margin-bottom: 10px;
-        padding: 5px;
-        border-radius: 5px;
-        border: 1px solid #ccc;
-        font-size: 16px;
-      }
+<head>
+  <title> API-CRUD </title>
+  <style>
+    form {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 10px;
+    }
 
-      button[type="button"] {
-        padding: 5px 10px;
-        border-radius: 5px;
-        border: none;
-        background-color: #008cba;
-        color: #fff;
-        font-size: 16px;
-        cursor: pointer;
-      }
+    input[type="text"],   
+    textarea {
+      margin-bottom: 10px;
+      padding: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
 
-      button[type="button"]:hover {
-        background-color: #006e9f;
-      }
-    </style>
-  </head>
+    button[type="button"] {
+      padding: 5px 10px;
+      border-radius: 5px;
+      border: none;
+      background-color: #008cba;
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+    }
 
-  <body>
-    <h1><center>API CRUD </center></h1>
-    <hr />
-    <!-- <div class="employee-form">
-      <form
-        onsubmit="event.preventDefault();onFormSubmit();"
-        autocomplete="off"
-      >
-        <div>
-          <label>Title*</label
-          ><label class="validation-error hide" id="fullNameValidationError"
-            >This field is required.</label
-          >
-          <input type="text" name="fullName" id="fullName" />
-        </div>
-        <div>
-          <label>content</label>
-          <textarea name="content" id="content"></textarea>
-        </div>
-        <div>
-        <button type="submit" id="create" onclick="create()">Create</button>
-      </form>
-    </div>
-    <br />
-    <div class="table">
-      <table class="list" id="List">
-        <thead>
-          <tr>
-            <th>Full Name</th>
-            <th>Email Id</th>
-            <th>Salary</th>
-            <th>City</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody> </tbody>
-      </table> -->
-    <!-- button to get all notes -->
-    <button onclick="getAllNotes()">Get All Notes</button>
+    button[type="button"]:hover {
+      background-color: #006e9f;
+    }
 
-    <!-- form to add a new note -->
-    <form>
-      <input type="text" id="title" />
-      <textarea id="content"></textarea>
-      <button type="button" onclick="addNote()">Add Note</button>
-    </form>
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
 
-    <!-- form to update a note -->
-    <form>
-      <input type="text" id="id" />
-      <input type="text" id="title" />
-      <textarea id="content"></textarea>
-      <button type="button" onclick="updateNote()">Update Note</button>
-    </form>
+    th,
+    td {
+      text-align: left;
+      padding: 8px;
+    }
 
-    <!-- form to delete a note -->
-    <form>
-      <input type="text" id="id" />
-      <button type="button" onclick="deleteNote()">Delete Note</button>
-    </form>
+    tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
 
-    <script>
-      // function to get all notes
-      function getAllNotes() {
-        fetch("/notes/all")
-          .then((response) => response.json())
-          .then((data) => {
-            console.log(data);
-            // display the data on the page
+    th {
+      background-color: #4CAF50;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>
+    <center>API CRUD </center>
+  </h1>
+  <hr />
+ 
+  <button onclick="getAllNotes()">Get All Notes</button>
+
+  <!-- form to add a new note -->
+  <form>
+    <input type="text" id="title" placeholder="Title" />
+    <textarea id="content" placeholder="Content"></textarea>
+    <button type="button" onclick="addNote()">Add Note</button>
+  </form>
+
+  <!-- table to display notes -->
+  <table id="notes-table">
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Content</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="notes-table-body">
+    </tbody>
+  </table>
+
+  <script>
+    // Function to add a note row to the table
+    function addNoteRow(id, title, content) {
+      // Create table row and cells
+      let row = document.createElement("tr");
+      let titleCell = document.createElement("td");
+      let contentCell = document.createElement("td");
+      let actionsCell = document.createElement("td");
+
+      // Add data to cells
+      titleCell.textContent = title;
+      contentCell.textContent = content;
+
+      // Add buttons to actions cell
+      let updateButton = document.createElement("button");
+      updateButton.textContent = "Update";
+      updateButton.onclick = function () {
+        // Set update form values
+        document.getElementById("id").value = id;
+        document.getElementById("title").value = title;
+        document.getElementById("content").value = content;
+      };
+      actionsCell.appendChild(updateButton);
+
+      let deleteButton = document.createElement("button");
+      deleteButton.textContent = "Delete";
+      deleteButton.onclick = function () {
+        deleteNote(id);
+      };
+      actionsCell.appendChild(deleteButton);
+
+      // Add cells to row and row to table body
+      row.appendChild(titleCell);
+      row.appendChild(contentCell);
+      row.appendChild(actionsCell);
+      document.getElementById("notes-table-body").appendChild(row);
+    }
+
+    // Function to clear the notes table
+    function clearNotesTable() {
+      document.getElementById("notes-table-body").innerHTML = "";
+    }
+
+    // Function to get all notes and display them in the table
+    function getAllNotes() {
+      fetch("/notes/all")
+        .then(response => response.json())
+        .then(data => {
+          clearNotesTable();
+          data.forEach(note => {
+            addNoteRow(note.id, note.title, note.content);
           });
-      }
+        });
+    }
 
-      // function to add a new note
-      function addNote() {
-        const title = document.getElementById("title").value;
-        const content = document.getElementById("content").value;
-        fetch("/notes/add", {
-          method: "POST",
-          body: JSON.stringify({ title: title, content: content }),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            console.log(data);
-            // display the data on the page
-          });
-      }
+    // Function to add a note
+    function addNote() {
+      let title = document.getElementById("title").value;
+      let content = document.getElementById("content").value;
+      fetch("https://jsonplaceholder.typicode.com/posts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ title: title, content: content })
+      })
+        .then(response => response.json())
+        .then(data => {
+          // Add note row to table and clear form
+          addNoteRow(data.id, data.title, data.content);
+          document.getElementById("title").value = "";
+          document.getElementById("content").value = "";
+        });
+    }
 
-      // function to update a note
-      function updateNote() {
-        const id = document.getElementById("id").value;
-        const title = document.getElementById("title").value;
-        const content = document.getElementById("content").value;
-        fetch("/notes/" + id, {
-          method: "PATCH",
-          body: JSON.stringify({ title: title, content: content }),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            console.log(data);
-            // display the data on the page
-          });
-      }
+    // Function to update a note
+    function updateNote() {
+      let id = document.getElementById("id").value;
+      let title = document.getElementById("title").value;
+      let content = document.getElementById("content").value;
+      fetch(`/notes/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ title: title, content: content })
 
-      // function to delete a note
-      function deleteNote() {
-        const id = document.getElementById("id").value;
-        fetch("/notes/" + id, {
-          method: "DELETE",
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            console.log(data);
-            // display the data on the page
-          });
-      }
-    </script>
-  </body>
+      })
+    }
+  </script>
+</body>
+
 </html>
